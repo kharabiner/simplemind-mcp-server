@@ -1,0 +1,32 @@
+{
+  "name": "simplemind-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for creating and editing SimpleMind mind maps through conversation",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "simplemind-mcp-server": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "simplemind",
+    "mindmap"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "adm-zip": "^0.5.16",
+    "fast-xml-parser": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

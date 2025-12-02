@@ -18,7 +18,9 @@ const ICLOUD_PATH = process.env.SIMPLEMIND_ICLOUD_PATH ||
 export async function listMindMaps(): Promise<string[]> {
     try {
         const files = await fs.readdir(ICLOUD_PATH);
-        return files.filter(f => f.endsWith('.smmx'));
+        return files
+            .filter(f => f.endsWith('.smmx'))
+            .map(f => f.normalize('NFC'));
     } catch (error) {
         console.error('Error listing mind maps:', error);
         return [];
@@ -30,7 +32,31 @@ export async function listMindMaps(): Promise<string[]> {
  */
 export async function readMindMap(filename: string): Promise<SimpleMindDocument | null> {
     try {
-        const filePath = path.join(ICLOUD_PATH, filename);
+        // Normalize to NFC for consistency, though macOS filesystem handles NFD.
+        // If the file on disk is NFD, accessing it with NFC string works on macOS.
+        const normalizedFilename = filename.normalize('NFC');
+        const filePath = path.join(ICLOUD_PATH, normalizedFilename);
+
+        // Check if file exists first to give better error
+        try {
+            await fs.access(filePath);
+        } catch {
+            // Try NFD if NFC fails (just in case)
+            const nfdFilename = filename.normalize('NFD');
+            const nfdPath = path.join(ICLOUD_PATH, nfdFilename);
+            try {
+                await fs.access(nfdPath);
+                // If NFD exists, use it
+                const zip = new AdmZip(nfdPath);
+                const xmlEntry = zip.getEntry('document/mindmap.xml');
+                if (!xmlEntry) throw new Error('mindmap.xml not found in archive');
+                const content = xmlEntry.getData().toString('utf-8');
+                return parseSimpleMindFile(content);
+            } catch {
+                throw new Error(`File not found: ${filename}`);
+            }
+        }
+
         const zip = new AdmZip(filePath);
         const xmlEntry = zip.getEntry('document/mindmap.xml');
 

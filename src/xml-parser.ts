@@ -53,7 +53,10 @@ function parseMindMaps(mindmapData: any): MindMap[] {
 
             // First pass: create all topics
             for (const t of topics) {
-                const id = String(t['@_id'] || t['@_guid'] || generateGuid());
+                // Handle id=0 correctly (0 is falsy in JS)
+                const idVal = t['@_id'];
+                const id = String(idVal !== undefined ? idVal : (t['@_guid'] || generateGuid()));
+
                 const topic: Topic = {
                     id: id,
                     text: String(t['@_text'] || t.text || ''),
